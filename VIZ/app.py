@@ -3,7 +3,7 @@
 
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from dash import Dash, html, dcc
+from dash import Dash, html, Input, Output, State, dcc
 import plotly.express as px
 import pandas as pd
 import numpy as np
@@ -59,38 +59,21 @@ def get_dummy_fig2():
     for i, (force, coord) in enumerate(coords.items())
     ]
 
-    ## Last trace as a worksround to make Plotly show colorscale
-    traces.append({
-    "mode": "markers", 
-    "fill": "toself",
-    "name": "", 
-    "type": "scatter", 
-    "x": [min_coord[1]], 
-    "y": [min_coord[0]], 
-    "line": {
-        "width": 0.75
-    },
-    "marker": {
-        "color": "rgb(100, 100, 100)",
-        "size": 0, 
-        "colorbar": {
-        "thickness": 20
-        }, 
-        "colorscale": [
-        [0.0, "red"], [1.0, "green"]
-        ],
-        "cmin":0,"cmax":1
-    }, 
-    "showlegend": False
-    } )
+    
 
     data = go.Data(traces)
     layout = {
-    "title": "UK Choropleth Map", 
-    "width": 750,  
-    "height": 950, 
+    "margin": {'l':40, 'r':0, 'b':0, 't':30},
+    "width": 600,  
+    "height": 700, 
     "hovermode": "closest", 
-    "plot_bgcolor": "rgba(0,0,0,0)"
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    'xaxis': {'title': '',
+                        'visible': False,
+                        'showticklabels': False},
+              'yaxis': {'title': '',
+                        'visible': False,
+                        'showticklabels': False}
     }
     return go.Figure(data=data, layout=layout)
 
@@ -109,65 +92,61 @@ def get_dummy_secondary(location = 'cheshire'):
     fig = px.line(
         data_frame=temp,
         x = 'month',
-        color='crime type',y='number of crimes'
-        )
-    return fig
-
-# ----
-app = Dash(__name__, external_stylesheets=[dbc.themes.LITERA])
-
-def get_dummy_fig():
-    df = px.data.gapminder().query("continent=='Oceania'")
-    fig = px.line(df, x="year", y="lifeExp", color="country", title="some plots of that area")
-    return fig
-
-def get_fig():
-    fig = go.Figure()
-    for force, coord in coords.items():
-        lat, lon = [e[0] for e in coord], [e[1] for e in coord]
-        fig.add_trace(
-            go.Scattermapbox(
-                lat=lat, lon=lon,
-                fill = "toself",
-                mode = "lines",
-                marker = { 'size': 10, 'color': "orange" },
-                name=force,
-                hovertemplate = f'''
-                    <b>Area: {force}</b><br>
-                    <b>safe-index: {round(random.random(), 2)}</b>
-                    <extra></extra>''',
-                showlegend = False,
-                hoverinfo='none'
-            ),
-            
+        color='crime type',y='number of crimes',
+        template='ggplot2'
         )
 
     fig.update_layout(
-        margin = {'l':0, 'r':0, 'b':0, 't':0},
-        mapbox = {
-            'style': "open-street-map",
-            'center': {'lat': 52.8739609957, 'lon': -3.464840987388 },
-            'zoom': 5},
-        showlegend = False)
-
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-1.02,
+            xanchor="right",
+            x=1
+        ),
+        width = 700,
+        height = 600,
+        margin={'l':0, 'r':0, 'b':0, 't':30},
+        xaxis = dict(
+            rangeslider=dict(visible=True),
+            type="date"
+        )
+    )
     return fig
+
+# ----
+app = Dash(__name__, external_stylesheets=[dbc.themes.MINTY])
+
 
 
 col1 = dbc.Col(
     html.Div(
-        children = dcc.Graph(
-        id='example-graph',
-        figure=get_dummy_fig2(),
-        style={
-            'width': '500px',
-            'height':'500px',
-            'text-align':'center',
-            'align-items':'center'
-        }
-        ),
+        children = [
+            html.H2(
+                "UK BeSafe Map",
+                style={
+                    'text-align':'center'
+                }
+            ),
+            html.P(
+                '''
+                    This is a map showing safe-index predicted by the model developed on past data
+                '''
+            ),
+            dcc.Graph(
+            id='example-graph',
+            figure=get_dummy_fig2(),
+            style={
+                'width': '50%',
+                'height':'100%',
+                'text-align':'center',
+                'align-items':'center'
+            }
+            )
+        ],
         style={
             'align-items':'center',
-            'text-align':'center',
+            'text-align':'left',
             "width": "100%","height": "100%",
         }
     ), 
@@ -177,50 +156,83 @@ col1 = dbc.Col(
 
 
 
-col2 = dbc.Col([
+col2 = dbc.Col(
     html.Div([
-        html.Div([
-            dcc.Dropdown(options=
-                [
-                    {'label': force, 'value': force}
-                    for force in coords.keys()
-                ], searchable=False, placeholder="Select the area", id='model_selection', clearable=False),
-            ])
-        ],
-        style={
-            'text-align':'center',
-            'align-items': 'center',
-        }, 
-    ),
-    html.Div(
+        html.Div(
+            dcc.Dropdown(
+                    options=
+                    [
+                        {'label': force, 'value': force}
+                        for force in coords.keys()
+                    ], 
+                    searchable=False, 
+                    placeholder="Select the area", 
+                    id='location_selector', 
+                    clearable=False
+                ),
+            style={
+                'text-align':'center',
+                'align-items': 'center',
+                'width': 700
+            }
+        ),
         dcc.Graph(
-            figure=get_dummy_secondary()
-        )
-    )], 
-    className='col', id='col2'
+            figure=get_dummy_secondary(),
+            id='secondary'
+            ),
+        
+        ]
+    ), 
+    className='col', id='col2',
+    style={
+        'width': '600px',
+        'height':'100%'
+    }
     )
 
-app.layout = html.Div(children=[
-    html.H1(
-        children='Be Safe',
-        style={
-            'text-align':'center'
-        }
-    ),
 
+
+app.layout = html.Div(children=[
     html.Div(
-        children='Mini-project Intro to Data Science',
-        style = {
-            'text-align':'center',
-            'margin' : '30px'
+        [
+            html.H1(
+            children='Be Safe',
+            style={
+                'text-align':'center',
+                'background-color':'#ABBAEA',
+                'padding':'30px'
+            }
+            ),
+            html.P(
+            [
+            'Mini-project Intro to Data Science', html.Br(),
+            'This is the project for predicting safe-index of each area in th UK based on data from Police UK crime database.', 
+            ],
+            style = {
+                'background-color':'#EBEBEB',
+                'padding':'20px'
+            }
+            )
+        ]
+    )
+   ,
+   html.Div(
+        dbc.Row([
+            col1,
+            col2    
+        ]),
+        style={
+            'margin':'30px'
         }
-    ),
-    
-    dbc.Row([
-        col1,
-        col2    
-    ])
+   )
 ])
 
+
+@app.callback(
+    Output('secondary','figure'),
+    Input('location_selector', 'value')
+)
+def cahnge_location(selected_loc):
+    return get_dummy_secondary(location=selected_loc)
 if __name__ == '__main__':
     app.run_server(debug=True)
