@@ -9,11 +9,11 @@ def num_to_rgb(val, max_val=1):
 
 
 color_map = {
-    'red': '#ff0000',
-    'orange':'#ff7f00',
-    'yellow':'#ffff00',
-    'pale-green':'#7fff00',
-    'green':'#00ff00'
+    'red': '#ECECEC',
+    'orange':'#CDE0FF',
+    'yellow':'#AAC3F3',
+    'pale-green':'#6192F3',
+    'green':'#4982F3'
 }
 
 def number_2_color(num):

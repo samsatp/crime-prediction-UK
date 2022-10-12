@@ -41,20 +41,21 @@ val = [
 def get_dummy_fig2():
     traces = [
     {
-    "fill": "toself", 
-    "line": {
-        "color": "rgb(100, 100, 100)", 
-        "width": 0.75
-    }, 
-    "mode": "lines", 
-    "type": "scatter", 
-    "x": [e[1] for e in coord], 
-    "y": [e[0] for e in coord], 
-    "fillcolor": val[i], 
-    "showlegend": False,
-    "name": force,
-    "hovertemplate" : f'Area: {force} <extra></extra><br>Safe-index: {nums[i]}',
-    "text": f'Area: {force}<br>Safe-index: {round(nums[i],2)}'
+        "fill": "toself", 
+        "line": {
+            "color": "rgb(100, 100, 100)", 
+            "width": 0.75
+        }, 
+        "mode": "lines", 
+        "type": "scatter", 
+        "x": [e[1] for e in coord], 
+        "y": [e[0] for e in coord], 
+        "fillcolor": val[i], 
+        "showlegend": False,
+        "hoverlabel": dict(namelength=0),
+        "name": force,
+        "hovertemplate" : f'<extra></extra>',
+        "text": f'<b>{force}</b> <br>Safe-index: {round(nums[i],2)}'
     }
     for i, (force, coord) in enumerate(coords.items())
     ]
@@ -63,54 +64,80 @@ def get_dummy_fig2():
 
     data = go.Data(traces)
     layout = {
-    "margin": {'l':40, 'r':0, 'b':0, 't':30},
-    "width": 600,  
-    "height": 700, 
-    "hovermode": "closest", 
-    "plot_bgcolor": "rgba(0,0,0,0)",
-    'xaxis': {'title': '',
-                        'visible': False,
-                        'showticklabels': False},
-              'yaxis': {'title': '',
-                        'visible': False,
-                        'showticklabels': False}
+        "margin": {'l':40, 'r':0, 'b':0, 't':30},
+        "width": 600,  
+        "height": 700, 
+        "hovermode": "closest", 
+        "plot_bgcolor": "rgba(0,0,0,0)",
+        'xaxis': {'title': '',
+                'visible': False,
+                'showticklabels': False},
+        'yaxis': {'title': '',
+                'visible': False,
+                'showticklabels': False},
+        'legend': {
+            'itemclick':'toggle'
+        }
     }
     return go.Figure(data=data, layout=layout)
 
-
-# Trace: Secondary
-def get_dummy_secondary(location = 'cheshire'):
-    temp= df[df['location']==location][['month', 'Violence and sexual offences',
+crime_types = ['Violence and sexual offences',
        'Anti-social behaviour', 'Public order', 'Criminal damage and arson',
        'Other theft', 'Vehicle crime', 'Burglary', 'Shoplifting', 'Drugs',
        'Bicycle theft', 'Other crime', 'Robbery', 'Possession of weapons',
-       'Theft from the person']]
+       'Theft from the person']
+
+# Trace: Secondary
+from typing import Union, List
+def get_dummy_secondary(location = 'cheshire', crime_types_selected: Union[str, List[str]] = 'All'):
+    temp= df[df['location']==location][['month'] + crime_types]
         
     temp.set_index('month', inplace=True)
     temp = temp.stack().to_frame().reset_index()
     temp.columns = ['month', 'crime type', 'number of crimes']
-    fig = px.line(
-        data_frame=temp,
-        x = 'month',
-        color='crime type',y='number of crimes',
-        template='ggplot2'
+        
+    if crime_types_selected in ['All', ['All']]:
+        fig = px.line(
+            data_frame=temp,
+            x = 'month',
+            color='crime type',y='number of crimes',
+            template='ggplot2'
+            )
+    else:
+        print('crime_types_selected: ',crime_types_selected)
+        fig = px.line(
+            data_frame = temp[temp['crime type'].isin(crime_types_selected)],
+            x = 'month',
+            y='number of crimes',
+            color='crime type',
+            template='ggplot2'
         )
 
+    fig.update_traces(
+        hovertemplate='<i>Number of crimes</i>: <b>%{y:d} cases</b>'+
+        '<br>Time: <b>%{x}</b><br>'
+    )
+
     fig.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=16,
+            font_family="Rockwell"
+        ),
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=-1.02,
+            y=-0.3,
             xanchor="right",
-            x=1
+            x=1,
+            bgcolor="LightSteelBlue",
+            bordercolor="Black",
+            borderwidth=2
         ),
         width = 700,
-        height = 600,
+        height = 700,
         margin={'l':0, 'r':0, 'b':0, 't':30},
-        xaxis = dict(
-            rangeslider=dict(visible=True),
-            type="date"
-        )
+        
     )
     return fig
 
@@ -134,7 +161,7 @@ col1 = dbc.Col(
                 '''
             ),
             dcc.Graph(
-            id='example-graph',
+            id='main-graph',
             figure=get_dummy_fig2(),
             style={
                 'width': '50%',
@@ -158,7 +185,7 @@ col1 = dbc.Col(
 
 col2 = dbc.Col(
     html.Div([
-        html.Div(
+        html.Div([
             dcc.Dropdown(
                     options=
                     [
@@ -168,8 +195,23 @@ col2 = dbc.Col(
                     searchable=False, 
                     placeholder="Select the area", 
                     id='location_selector', 
-                    clearable=False
+                    clearable=False,
+                    value='essex'
                 ),
+            dcc.Dropdown(
+                    options=
+                    [
+                        {'label': crime_type, 'value': crime_type}
+                        for crime_type in crime_types
+                    ] + [{'label':'All', 'value':'All'}], 
+                    searchable=False, 
+                    placeholder="Select the crime type to focus", 
+                    id='crime_selector', 
+                    clearable=True,
+                    value='All',
+                    multi=True
+                )
+            ],
             style={
                 'text-align':'center',
                 'align-items': 'center',
@@ -230,9 +272,11 @@ app.layout = html.Div(children=[
 
 @app.callback(
     Output('secondary','figure'),
-    Input('location_selector', 'value')
+    Input('location_selector', 'value'),
+    Input('crime_selector', 'value')
 )
-def cahnge_location(selected_loc):
-    return get_dummy_secondary(location=selected_loc)
+def cahnge_location(selected_loc, seleted_crimes):
+    print('seleted_crimes: ',seleted_crimes)
+    return get_dummy_secondary(location=selected_loc, crime_types_selected=seleted_crimes)
 if __name__ == '__main__':
     app.run_server(debug=True)
