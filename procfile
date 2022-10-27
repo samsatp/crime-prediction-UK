@@ -1,1 +1,1 @@
-web: gunicorn VIZ\app:server
+web: gunicorn VIZ/app:server
