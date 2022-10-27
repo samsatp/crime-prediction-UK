@@ -11,12 +11,12 @@ import random
 import json
 from VIZ.utils import number_2_color
 
-with open('VIZ\coords.json', 'r') as f:
+with open('VIZ/coords.json', 'r') as f:
     coords = json.load(f) 
 
 
 # Data frame ----
-df = pd.read_csv('EDA\df_preprocessed.csv')
+df = pd.read_csv('EDA/df_preprocessed.csv')
 lats, longs = [], []
 
 # Find minimum lat, long for work-around colorscale
