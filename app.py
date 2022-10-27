@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import random
 import json
-from utils import number_2_color
+from VIZ.utils import number_2_color
 
 with open('VIZ\coords.json', 'r') as f:
     coords = json.load(f) 
