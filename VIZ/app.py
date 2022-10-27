@@ -143,7 +143,7 @@ def get_dummy_secondary(location = 'cheshire', crime_types_selected: Union[str, 
 
 # ----
 app = Dash(__name__, external_stylesheets=[dbc.themes.MINTY])
-
+server = app.server
 
 
 col1 = dbc.Col(
