@@ -248,7 +248,8 @@ app.layout = html.Div(children=[
             html.P(
             [
             'Mini-project Intro to Data Science', html.Br(),
-            'This is the project for predicting safe-index of each area in th UK based on data from Police UK crime database.', 
+            'Our project predicts the safety index in UK areas based on crime data from the UK police crime database.', 
+            "It's a number from 0 to 1: 1 indicates that the area is perfectly safe, while 0 means that you should proceed with caution."
             ],
             style = {
                 'background-color':'#EBEBEB',
