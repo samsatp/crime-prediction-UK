@@ -1,6 +1,9 @@
 # crime-prediction-UK
 ---
 
+Project report: [link to PDF](https://drive.google.com/file/d/1L5HeXsbY9SlWgwnkfAbG_wQhWGRrnMot/view?usp=sharing)
+Web app: [https://besafe-intro-to-ds.herokuapp.com/](https://besafe-intro-to-ds.herokuapp.com/)
+
 ## data sources
 1. https://data.police.uk/data/
    - Use data from June 2020 - June 2022
