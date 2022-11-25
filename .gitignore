@@ -2,3 +2,4 @@ venv
 **/*.kml
 **/*.html
 **/__pycache__
+data/*
